@@ -25,7 +25,7 @@ Requirements
 
 Quick Start
 -----------
-* Simple add this package to your Div Starter (or Site Application) with `/mu-plugins/`. Assuming [Div Library](https://github.com/DivTruth/div-library) is activated the add on should be initiated. Navigate to "Site Options -> Settings" (by default) to begin setting up
+* Simple add this package to your Div Starter (or Site Application) within `/mu-plugins/`. Assuming [Div Library](https://github.com/DivTruth/div-library) is activated the add on should be initiated. Navigate to "Site Options -> Settings" (by default) to begin setting up
 
 FAQ
 ---
