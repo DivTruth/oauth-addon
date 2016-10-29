@@ -1,0 +1,1 @@
+/* This file represents the oauth localized variables */
