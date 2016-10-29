@@ -421,7 +421,7 @@ abstract class OAuthProvider {
 		$this->clear_login_state();
 		
 		# Set result for message
-		set_transient('oauth_notify', $msg, 60);
+		set_transient($_SERVER['REMOTE_ADDR'].'_oauth_notify', $msg, 60);
 
 		# Do not proceed if there is an error
 		if($error){

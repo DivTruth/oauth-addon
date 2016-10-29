@@ -1,9 +1,9 @@
 OAuth Addon
 ========
 
-This is a [Div Starter](https://github.com/DivTruth/div-starter) addon which can be used as is or serve as a boiler plate to your site's application. If you have questions about Div Starter please see the documenation there. Also, if you haven't already please read the [Div Blend Approach](http://divblend.com/div-blend/) which outlines the framework and its intentions.
+The OAuth Addon enables developers to easily provide OAuth specific features to their application, allowing users to login or register by authenticating with an existing 3rd party provider (i.e. Google, Facebook, Twitter, etc.) via OAuth 2.0. Once a 3rd party authenticated user session has been provided the developer can use the session to provide other services.
 
-The OAuth Addon developers to easily provide OAuth specific features to their application, allowing users to login or register by authenticating with an existing 3rd party provider (i.e. Google, Facebook, Twitter, etc.) via OAuth 2.0. Once a 3rd party authenticated user session has been provided the developer can use the session to provide other services.
+**DISCLAIMER:** This is a [Div Starter](https://github.com/DivTruth/div-starter) addon which can be used as is or serve as a boiler plate to your site's application. If you have questions about Div Starter please see the documenation there. Also, if you haven't already please read the [Div Blend Approach](http://divblend.com/div-blend/) which outlines the framework and its intentions.
 
 **In this readme:** [Features](#features) - [Requirements](#requirements) - [Quick Start](#quick-start) - [FAQ](#faq) - [Roadmap](#roadmap) - [History](#history)
 
