@@ -330,9 +330,10 @@ class OAuthAddon {
 	 * Pushes login messages into the dom where they can be extracted by javascript
 	 */
 	function notify() {
-		$msg = get_transient( 'oauth_notify' );
+		$msg = get_transient( $_SERVER['REMOTE_ADDR'].'_oauth_notify' );
 		if($msg){
 			_e("<script type='text/javascript'>OAUTH.notify('".$msg."')</script>");
+			delete_transient( $_SERVER['REMOTE_ADDR'].'_oauth_notify' );
 		}
 	}
 
