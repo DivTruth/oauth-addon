@@ -73,6 +73,8 @@ class OAuthAddon {
 	private function init(){
 		# Custom CSS ACF fields
 		add_action('acf/input/admin_head', array( $this, 'css') );
+		# Add custom login logo
+		add_action('login_enqueue_scripts', array( $this, 'login_logo') );
 		# Customize the login page
 		add_filter('login_message', array( $this, 'customize_login_screen') );
 		# Hook scripts and styles for login page:
@@ -161,6 +163,25 @@ class OAuthAddon {
 		# Encrypt password fields upon database entry
 		add_filter('acf/update_value/name='.$provider.'_client_secret', array( $this, 'encrypt_ACF_password_fields'), 10, 3);
 	}
+
+	/*
+	 * Show custom login logo if image is selected
+ 	 */
+	function login_logo() {
+		$loginImage = wp_get_attachment_image_src( get_option('options_oauth_login_logo'), 'full' );
+		if( !empty($loginImage) ) {
+			 ?>
+		    <style type="text/css">
+		        #login h1 a, .login h1 a {
+		            background-image: url("<?php echo $loginImage[0]; ?>");
+		            background-size: 100%;
+		            width: 100%;
+		            max-width: 300px;
+		            height: 175px;
+		        }
+		    </style>
+		<?php }
+	 }
 
 	/**
 	 * Show a custom login form on the default login screen
