@@ -149,7 +149,7 @@ acf_add_local_field_group(array (
 		array (
 			'key' => 'oauth_login_logo',
 			'label' => 'Login Logo',
-			'name' => 'login_logo',
+			'name' => 'oauth_login_logo',
 			'type' => 'image',
 			'instructions' => 'Select the logo image you want to override the default WordPress image',
 			'required' => 0,
