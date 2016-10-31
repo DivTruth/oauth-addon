@@ -6,16 +6,17 @@
  * 		NOTE: Depends on ACF 5.0+ and Div Library plugins
  * 
  * @package 	OAuth
+ * @subpackage 	Addon
  * @author 	   	Nick Worth
  * @version     1.0
- * @link        http://divblend.com/div-starter/add-ons/oauth/
+ * @link        https://github.com/DivTruth/oauth-addon
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 class OAuthAddon {
 
 	# OAuth addon version 
-	public $version = '0.1.0';
+	public $version = '1.0';
 
 	public $providers = array(
 		'salesforce'	=> 'Salesforce',

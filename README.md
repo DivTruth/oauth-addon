@@ -39,6 +39,8 @@ Roadmap
 * Specific settings page
 * Add icon sets
 * Ability to acquire a registering user's third-party username / nickname / email address and auto-populate the WordPress user profile. Works as an alternative to the userXX naming pattern.
+* Add better setup documentation per provider
+* Add more customization settings for (per feature)
 
 Contribution
 -------
