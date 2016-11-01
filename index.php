@@ -172,12 +172,17 @@ class OAuthAddon {
 		if( !empty($loginImage) ) {
 			 ?>
 		    <style type="text/css">
-		        #login h1 a, .login h1 a {
+		        #login h1, .login h1 {
 		            background-image: url("<?php echo $loginImage[0]; ?>");
 		            background-size: 100%;
+		            background-repeat: no-repeat;
+		            margin: 0 auto;
 		            width: 100%;
 		            max-width: 300px;
 		            height: 175px;
+		        }
+		        #login h1 a, .login h1 a {
+		        	display: none;
 		        }
 		    </style>
 		<?php }
@@ -351,10 +356,9 @@ class OAuthAddon {
 	 * Pushes login messages into the dom where they can be extracted by javascript
 	 */
 	function notify() {
-		$msg = get_transient( $_SERVER['REMOTE_ADDR'].'_oauth_notify' );
+		$msg = get_transient( 'oauth_notify' );
 		if($msg){
 			_e("<script type='text/javascript'>OAUTH.notify('".$msg."')</script>");
-			delete_transient( $_SERVER['REMOTE_ADDR'].'_oauth_notify' );
 		}
 	}
 
