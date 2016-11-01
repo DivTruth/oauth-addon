@@ -176,10 +176,10 @@ class OAuthAddon {
 		            background-image: url("<?php echo $loginImage[0]; ?>");
 		            background-size: 100%;
 		            background-repeat: no-repeat;
-		            margin: 0 auto;
-		            width: 100%;
+		            margin: 0 auto 20px;
+		            width: <?php echo $loginImage[1]; ?>px;
+		            height: <?php echo $loginImage[2]; ?>px;
 		            max-width: 300px;
-		            height: 175px;
 		        }
 		        #login h1 a, .login h1 a {
 		        	display: none;
