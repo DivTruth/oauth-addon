@@ -179,6 +179,8 @@ class OAuthAddon {
 		            width: <?php echo $loginImage[1]; ?>px;
 					height: <?php echo $loginImage[2]; ?>px;
 					max-width: 300px;
+					pointer-events: none;
+ 					cursor: default;
 		        }
 		    </style>
 		<?php }
