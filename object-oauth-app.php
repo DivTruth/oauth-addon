@@ -57,6 +57,7 @@ abstract class OAuthApp {
         $this->oauth->client_id       = $this->client_id; 
         $this->oauth->client_secret   = $this->client_secret; 
         $this->oauth->login_uri       = $this->login_uri; 
+
         # Remove from settings from app now that they are stored in the oauth object
         unset($this->app);
         unset($this->provider);
@@ -67,37 +68,24 @@ abstract class OAuthApp {
 
     public function get_user_session(){
         # First, do we already have a user session
-        if( !$this->hasSession() ){
+        if( ! $this->oauth->isAuthenticated() ){
             # If not begin the oauth handshaking process
             $this->oauth->request_authorization_code();
         }
     }
 
     /**
-     * Determines if it has session.
-     *
-     * @return     boolean
-     */
-    private function hasSession(){
-        if( ! ISSET($_SESSION[$this->oauth->session_string]['access_token']) ) return FALSE;
-        return TRUE;
-    }
-
-    /**
-     * Activation description
+     * Default app activation: Redirect to original url
+     * NOTE: Override behavior in extended class as needed
      */
     public function activate(){
-        if($this->url != '')
-        header("Location: $this->url");
-        exit;
+        if($this->oauth->session['last_url'] != ''){
+            $url = $this->oauth->session['last_url'];
+            header("Location: $url");
+            exit;
+        }
     }
 
-    /**
-     * Allow response to be parsed
-     *
-     * @param      array  $response
-     */
-    protected function parse($response){}
 }
 
 ?>

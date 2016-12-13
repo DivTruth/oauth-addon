@@ -33,6 +33,12 @@ abstract class OAuthProvider {
 	public $session;
 
 	/**
+	 * Store features in state parameter
+	 * @var string
+	 */
+	public $state;
+
+	/**
 	 * Identity array
 	 * @var array
 	 */
@@ -122,6 +128,7 @@ abstract class OAuthProvider {
 			'response_type' => 'code',
 			'client_id' 	=> $this->client_id,
 			'redirect_uri' 	=> $this->redirect_uri,
+			'state' 		=> $_REQUEST['state']
 		);
 		# Allow provider to modify parameters
 		$params = apply_filters( 'oauth_authorization_parameters', $params );
@@ -174,11 +181,12 @@ abstract class OAuthProvider {
 	public function request_tokens() {
 		# Setup token request parameters:
 		$params = array(
-			'grant_type' => 'authorization_code',
-			'code' => $this->session['authorization_code'],
-			'client_id' => $this->client_id,
+			'grant_type' 	=> 'authorization_code',
+			'code' 			=> $this->session['authorization_code'],
+			'client_id' 	=> $this->client_id,
 			'client_secret' => DIV\services\helper::decrypt($this->client_secret),
-			'redirect_uri' => $this->redirect_uri
+			'redirect_uri' 	=> $this->redirect_uri,
+			'state' 		=> $this->state
 		);
 		apply_filters( 'oauth_token_parameters', $params );
 
@@ -211,6 +219,7 @@ abstract class OAuthProvider {
 		# Setup token request parameters:
 		$params = array(
 			'access_token' 		=> 'access_token',
+			'state' 			=> 'state',
 			'error'				=> 'error',
 			'error_description' => 'error_description'
 		);
@@ -485,9 +494,19 @@ abstract class OAuthProvider {
 	}
 
 /************************************
- * Private OAuth feature methods
+ * OAuth feature methods
  ************************************/
 	
+	/**
+	 * Enable SSO login feature
+	 */
+	public function login(){
+        # Enable Single Sign-On
+        if(in_array("login", $this->features, TRUE)){
+            $this->enable_sso();
+        }
+    }
+
 	/**
 	 * Request user's email to match/login to WP user
 	 */

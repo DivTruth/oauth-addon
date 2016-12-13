@@ -233,14 +233,14 @@ class OAuthAddon {
 		# Check for SSL
 		if( force_ssl_admin() ) { $site_url = set_url_scheme( $site_url, 'https' ); }
 		# Setup redirection if passed in URL
-		$redirect_to = isset($_GET['redirect_to']) ? urlencode($_GET['redirect_to']) : '';
-		if ($redirect_to) {$redirect_to = "&redirect_to=" . $redirect_to;}
+		$redirect_to = isset($_GET['redirect_to']) ? urlencode($_GET['redirect_to']) : '';	
 		
 		// TODO: Add icons
 
 		$atts = array(
-			'site_url' => $site_url,
-			'redirect_to' => $redirect_to,
+			'site_url' 		=> $site_url,
+			'redirect_to' 	=> $redirect_to,
+			'state' 		=> 'login'
 		);
 
 		# Generate the login buttons for available providers:
@@ -261,9 +261,14 @@ class OAuthAddon {
 	 *
 	 * @return     string
 	 */
-	function login_button($provider, $display_name, $atts) {
+	static function login_button($provider, $display_name, $atts) {
+		# Setup redirection if passed in URL
+		$redirect_to = (ISSET($atts['redirect_to'])) ? '&redirect_to=' . urlencode($atts['redirect_to']) : '';
+		# Setup features in the state parameter
+		$state = (ISSET($atts['state'])) ? '&state=' . urlencode($atts['state']) : '';
+
 		$html = "";
-			$html .= "<a id='login-" . $provider . "' class='oauth-login-button' href='" . $atts['site_url'] . "?connect=" . $provider . $atts['redirect_to'] . "'>";
+			$html .= "<a id='login-" . $provider . "' class='oauth-login-button' href='" . $atts['site_url'] . "?connect=".$provider.$redirect_to.$state."'>";
 			$html .= $display_name;
 			$html .= "</a>";
 		return $html;

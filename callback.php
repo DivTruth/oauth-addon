@@ -49,11 +49,24 @@ if(!$oauth->isAuthenticated()){
 # Allow applications to hook into complete
 do_action( 'oauth_complete', '' );
 
-# Either activate the app or the provider features
+# If a state was provided, parse it for features
+$state = (ISSET($_REQUEST['state'])) ? $_REQUEST['state'] : false;
+if($state){
+	$features = explode( ',', $state );
+	foreach ($features as $feature) {
+		echo $feature;
+		# Either activate the app or the provider feature method
+		if($app){
+			$application->$feature();
+		} else {
+			$oauth->$feature();
+		}
+	}
+}
+
+# Run the app or provider Activate method
 if($app){
 	$application->activate();
-} else {
-	$oauth->activate();
 }
 
 ?>
