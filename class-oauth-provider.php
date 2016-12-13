@@ -14,6 +14,7 @@ abstract class OAuthProvider {
 
 	# Set class details
 	protected $provider;
+	public $session_string;
 
 	# Provider authentication
 	protected $client_id;
@@ -47,35 +48,38 @@ abstract class OAuthProvider {
 	 */
 	protected function install(){
 		# Setup the instance session container
+		$this->session_string = $this->provider;
+		$this->setup_session();
+	}
+
+	/**
+	 * Install the application and session string
+	 *
+	 * @param      string  $app
+	 */
+	public function install_app($app){
+		$this->session_string = $app;
+		$this->redirect_uri = $this->redirect_uri.'/'.$this->session_string;
 		$this->setup_session();
 	}
 
 	/**
 	 * Setup instance session
 	 */
-	public function setup_session(){
+	private function setup_session(){
 		if (!isset($_SESSION)) session_start();
-		$this->session = array(
-			'authorization_code'	=> ( ISSET($_SESSION[$this->provider]['code']) ) 
-										? $_SESSION[$this->provider]['code'] : NULL,
-			'access_token' 			=> ( ISSET($_SESSION[$this->provider]['access_token']) ) 
-										? $_SESSION[$this->provider]['access_token'] : NULL,
-			'refresh_token' 		=> ( ISSET($_SESSION[$this->provider]['refresh_token']) ) 
-										? $_SESSION[$this->provider]['refresh_token'] : NULL,
-			'issued_at' 			=> ( ISSET($_SESSION[$this->provider]['issued_at']) )   // TODO: consider changing to expires_at or in
-										? $_SESSION[$this->provider]['issued_at'] : NULL,
-			'identity_url' 			=> ( ISSET($_SESSION[$this->provider]['identity_url']) ) 
-										? $_SESSION[$this->provider]['identity_url'] : NULL,
-			'last_url' 				=> ( ISSET($_SESSION[$this->provider]['last_url']) ) 
-										? $_SESSION[$this->provider]['last_url'] : NULL
-		);
+		if(ISSET($_SESSION[$this->session_string])){
+			foreach ($_SESSION[$this->session_string] as $key => $value) {
+				$this->session[$key] = $value;
+			}
+		}
 	}
 
 	/**
 	 * Clears the login state
 	 */
 	private function clear_login_state(){
-		unset($_SESSION[$this->provider]);
+		unset($_SESSION[$this->session_string]);
 	}
 
 	/**
@@ -110,7 +114,7 @@ abstract class OAuthProvider {
 	 */
 	public function request_authorization_code() {
 		$url = $this->get_authorization_url();
-		$_SESSION[$this->provider]['last_url'] = $_SERVER['HTTP_REFERER'];
+		$_SESSION[$this->session_string]['last_url'] = $_SERVER['HTTP_REFERER'];
 		header("Location: $url");
 		exit;
 	}
@@ -131,7 +135,7 @@ abstract class OAuthProvider {
 	 */
 	protected function set_field($field, $value){
 		$this->session[$field] = $value;
-		$_SESSION[$this->provider][$field] = $this->session[$field];
+		$_SESSION[$this->session_string][$field] = $value;
 	}
 
 	/**
@@ -410,9 +414,9 @@ abstract class OAuthProvider {
 	 */
 	function end_login($msg, $error=TRUE) {
 		# Unset last url for redirect
-		if( ISSET($_SESSION[$this->provider]["last_url"]) ){
-			$last_url = $_SESSION[$this->provider]["last_url"];
-			unset($_SESSION[$this->provider]["last_url"]);
+		if( ISSET($_SESSION[$this->session_string]["last_url"]) ){
+			$last_url = $_SESSION[$this->session_string]["last_url"];
+			unset($_SESSION[$this->session_string]["last_url"]);
 		} else {
 			$last_url = $this->session['last_url'];
 		}
