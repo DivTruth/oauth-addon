@@ -6,6 +6,8 @@
  * @author     Nick Worth
  */
 
+do_action( 'oauth_callback', '' );
+
 # Make sure an authentication code was received
 if(!isset($_GET['code'])) {
     die("<strong>ERROR:</strong> No authorizaton code provided");

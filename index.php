@@ -79,6 +79,7 @@ class OAuthAddon {
 		# Customize the login page
 		add_filter('login_message', array( $this, 'customize_login_screen') );
 		# Hook scripts and styles for login page:
+		add_action('wp_enqueue_scripts', array( $this, 'init_scripts_styles') );
 		add_action('login_enqueue_scripts', array( $this, 'init_scripts_styles') );
 		add_action('admin_enqueue_scripts', array( $this, 'init_scripts_styles') );
 
@@ -94,6 +95,7 @@ class OAuthAddon {
 		// add_filter( 'wp_loaded', array( $this, 'flushRewriteRules'));
 		
 		# Add error catching
+		add_action('oauth_callback', array($this, 'notify') );
 		add_action('wp_footer', array( $this, 'notify' ) );
 		add_filter('admin_footer', array($this, 'notify') );
 		add_filter('login_footer', array($this, 'notify') );

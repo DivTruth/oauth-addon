@@ -3,7 +3,7 @@
 =====================*/
 #result {display:none;}
 .login-message{text-align:center; left:0; right:0; top:5px; position:absolute; font-size:1.2em; z-index:999999;}
-.login-message span {padding:10px 20px; background:#fff; color:#000; border-radius:5px; display:inline-block;}
+.login-message span {padding:10px 20px; background:#fff; color:#000; border-radius:5px; display:inline-block; border: 1px solid #ccc; box-shadow: #ccc 1px 2px 10px;}
 
 /*  LOGIN FORM STYLES
 =====================*/
