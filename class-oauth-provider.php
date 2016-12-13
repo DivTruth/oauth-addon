@@ -137,8 +137,9 @@ abstract class OAuthProvider {
 			'response_type' => 'code',
 			'client_id' 	=> $this->client_id,
 			'redirect_uri' 	=> $this->redirect_uri,
-			'state' 		=> $this->state
 		);
+		# Add state parameter if set to true
+		if($this->state) $params['state'] = $this->state;
 		# Allow provider to modify parameters
 		$params = apply_filters( 'oauth_authorization_parameters', $params );
 		# Return url with a filter hook for modifications
@@ -195,8 +196,9 @@ abstract class OAuthProvider {
 			'client_id' 	=> $this->client_id,
 			'client_secret' => DIV\services\helper::decrypt($this->client_secret),
 			'redirect_uri' 	=> $this->redirect_uri,
-			'state' 		=> $this->state
 		);
+		# Add state parameter if set to true
+		if($this->state) $params['state'] = $this->state;
 		apply_filters( 'oauth_token_parameters', $params );
 
 		# Attempt curl token request:
@@ -233,7 +235,7 @@ abstract class OAuthProvider {
 			'error_description' => 'error_description'
 		);
 		$params = apply_filters( 'oauth_token_response', $params );
-
+		
 		# Check for errors
 		if(ISSET($response[ $params['error'] ])){
 			$description = (ISSET($response[ $params['error_description'] ])) 
