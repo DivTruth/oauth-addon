@@ -94,7 +94,7 @@ abstract class OAuthProvider {
 	/**
 	 * Clears the login state
 	 */
-	private function clear_login_state(){
+	protected function clear_login_state(){
 		unset($_SESSION[$this->session_string]);
 	}
 

@@ -17,6 +17,12 @@ class OAuth_Salesforce extends OAuthProvider{
     # Provider settings
     protected $features;
     protected $environment;
+
+    /**
+     * Enable the state parameter
+     * @var boolean
+     */
+    public $state_support = TRUE;
     
     /**
      * Provider Constructor
@@ -182,6 +188,8 @@ class OAuth_Salesforce extends OAuthProvider{
         update_option('options_salesforce_authorization_code', $_SESSION[$this->session_string]['authorization_code']);
         update_option('options_salesforce_access_token', $_SESSION[$this->session_string]['access_token']);
         update_option('options_salesforce_refresh_token', $_SESSION[$this->session_string]['refresh_token']);
+        # Clear login state
+        $this->clear_login_state();
         # Redirect back to settings page
         header("Location: /wp-admin/admin.php?page=site-settings");
         exit;
