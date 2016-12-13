@@ -131,7 +131,11 @@ class OAuth_Salesforce extends OAuthProvider{
          * @param      array  $response
          */
         public function consume_token($params, $response){
-            $this->set_field('refresh_token', $response[ $params['refresh_token'] ]);
+            /* During authentication expect a refresh token, but during
+                refresh don't expect an additional one */
+            if( ISSET($response[ $params['refresh_token'] ]) )
+                $this->set_field('refresh_token', $response[ $params['refresh_token'] ]);
+
             $this->set_field('issues_at', date("m/d/Y H:i:s", time( $response[ $params['issued_at'] ]) ));
 
             # Used for gateway to Force.com's Identity Service
@@ -220,9 +224,8 @@ class OAuth_Salesforce extends OAuthProvider{
     public function refresh_session(){
         $refresh_token = get_option('options_salesforce_refresh_token');
         if($refresh_token){
-          $token_response = $this->request_refresh_tokens($refresh_token);
-          echo "<pre>"; print_r($token_response); echo "</pre>";
-          $this->consume_token_response($token_response);
+            $token_response = $this->request_refresh_tokens($refresh_token);
+            update_option('options_salesforce_access_token', $token_response['access_token']);
         }
     }
 
