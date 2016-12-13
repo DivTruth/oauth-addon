@@ -54,7 +54,6 @@ $state = (ISSET($_REQUEST['state'])) ? $_REQUEST['state'] : false;
 if($state){
 	$features = explode( ',', $state );
 	foreach ($features as $feature) {
-		echo $feature;
 		# Either activate the app or the provider feature method
 		if($app){
 			$application->$feature();
