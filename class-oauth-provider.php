@@ -276,11 +276,6 @@ abstract class OAuthProvider {
 		curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
-		
-		$headers = array();
-		$headers[] = 'Accept: application/x-www-form-urlencoded';
-		$headers[] = 'Content-Type: application/x-www-form-urlencoded';
-		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 
 		$result = curl_exec($curl);
 		# Check for curl error
