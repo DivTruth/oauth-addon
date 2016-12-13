@@ -216,7 +216,7 @@ class OAuthAddon {
 		$features = get_option('options_'.$provider.'_features');
 		if($features!=NULL){
 			foreach ($features as $feature) {
-				if($feature = 'login') return true;
+				if($feature == 'login') return true;
 			}
 		}
 		return false;
