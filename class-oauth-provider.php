@@ -112,7 +112,6 @@ abstract class OAuthProvider {
 	            $current = time();
 	            if( $expires >= $current ){
 	                $this->token = $_SESSION[$this->session_string]['access_token'];
-	                $this->endpoint = $_SESSION[$this->session_string]['instance_url'].'/services/apexrest/FishFinder';
 	                return TRUE;
 	            } else {
 	            	# Since token is expired, reset and try again
