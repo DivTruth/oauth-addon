@@ -16,7 +16,7 @@ if(!isset($_GET['code'])) {
 # Setup provider and app if applicable
 $oauth = explode( '/', get_query_var( 'oauth', FALSE ) );
 $provider = $oauth[0];
-$app = $oauth[1];
+$app = (ISSET($oauth[1])) ? $oauth[1] : false;
 
 # Make sure an authentication code was received
 if(!$provider) {
