@@ -34,9 +34,11 @@ abstract class OAuthProvider {
 
 	/**
 	 * Store features in state parameter
+	 * NOTE: Must be enabled by provider
 	 * @var string
 	 */
 	public $state;
+	protected $state_support = FALSE;
 
 	/**
 	 * Identity array
@@ -53,8 +55,14 @@ abstract class OAuthProvider {
 	 * Once the provider is configured it needs to be installed
 	 */
 	protected function install(){
-		# Set state if called by specific feature
-		$this->state = (ISSET($_REQUEST['state'])) ? $_REQUEST['state'] : false;
+		# Check for state parameter support
+		if($this->state_support){
+			# Set state if called by specific feature
+			$this->state = (ISSET($_REQUEST['state'])) ? $_REQUEST['state'] : false;
+		} else {
+			# Disable for this instance
+			$this->state = FALSE;
+		}
 		# Setup the instance session container
 		$this->session_string = ($this->state) ? $this->provider.'-'.$this->state : $this->provider;
 		$this->setup_session();
@@ -499,6 +507,16 @@ abstract class OAuthProvider {
  * OAuth feature methods
  ************************************/
 	
+	/**
+	 * Default activation method
+	 */
+	public function activate(){
+        # Attempt login by default
+        $this->login();
+        # Login feature disabled, redirect to home page
+        $this->end_login('No features or services available, please contact support');
+    }
+
 	/**
 	 * Enable SSO login feature
 	 */

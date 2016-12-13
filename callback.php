@@ -67,6 +67,8 @@ if($state){
 # Run the app or provider Activate method
 if($app){
 	$application->activate();
+} else {
+	$oauth->activate();
 }
 
 ?>
