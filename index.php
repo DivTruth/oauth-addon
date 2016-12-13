@@ -6,16 +6,17 @@
  * 		NOTE: Depends on ACF 5.0+ and Div Library plugins
  * 
  * @package 	OAuth
+ * @subpackage 	Addon
  * @author 	   	Nick Worth
  * @version     1.0
- * @link        http://divblend.com/div-starter/add-ons/oauth/
+ * @link        https://github.com/DivTruth/oauth-addon
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 class OAuthAddon {
 
 	# OAuth addon version 
-	public $version = '0.1.0';
+	public $version = '1.0';
 
 	public $providers = array(
 		'salesforce'	=> 'Salesforce',
@@ -172,17 +173,14 @@ class OAuthAddon {
 		if( !empty($loginImage) ) {
 			 ?>
 		    <style type="text/css">
-		        #login h1, .login h1 {
+		        #login h1 a, .login h1 a {
 		            background-image: url("<?php echo $loginImage[0]; ?>");
 		            background-size: 100%;
-		            background-repeat: no-repeat;
-		            margin: 0 auto;
-		            width: 100%;
-		            max-width: 300px;
-		            height: 175px;
-		        }
-		        #login h1 a, .login h1 a {
-		        	display: none;
+		            width: <?php echo $loginImage[1]; ?>px;
+					height: <?php echo $loginImage[2]; ?>px;
+					max-width: 300px;
+					pointer-events: none;
+ 					cursor: default;
 		        }
 		    </style>
 		<?php }
@@ -356,9 +354,10 @@ class OAuthAddon {
 	 * Pushes login messages into the dom where they can be extracted by javascript
 	 */
 	function notify() {
-		$msg = get_transient( 'oauth_notify' );
+		$msg = get_transient( $_SERVER['REMOTE_ADDR'].'_oauth_notify' );
 		if($msg){
 			_e("<script type='text/javascript'>OAUTH.notify('".$msg."')</script>");
+			delete_transient( $_SERVER['REMOTE_ADDR'].'_oauth_notify' );
 		}
 	}
 
