@@ -53,8 +53,10 @@ abstract class OAuthProvider {
 	 * Once the provider is configured it needs to be installed
 	 */
 	protected function install(){
+		# Set state if called by specific feature
+		$this->state = (ISSET($_REQUEST['state'])) ? $_REQUEST['state'] : false;
 		# Setup the instance session container
-		$this->session_string = $this->provider;
+		$this->session_string = ($this->state) ? $this->provider.'-'.$this->state : $this->provider;
 		$this->setup_session();
 	}
 
@@ -128,7 +130,7 @@ abstract class OAuthProvider {
 			'response_type' => 'code',
 			'client_id' 	=> $this->client_id,
 			'redirect_uri' 	=> $this->redirect_uri,
-			'state' 		=> $_REQUEST['state']
+			'state' 		=> $this->state
 		);
 		# Allow provider to modify parameters
 		$params = apply_filters( 'oauth_authorization_parameters', $params );

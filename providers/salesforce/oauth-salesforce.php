@@ -42,8 +42,8 @@ class OAuth_Salesforce extends OAuthProvider{
         $this->redirect_uri     = get_bloginfo('url').'/oauth/'.$this->provider;
         
         # OAuth URLs
-        $this->auth_url         = $this->getLoginURI().'/services/oauth2/authorize'; 
-        $this->tokens_url       = $this->getLoginURI().'/services/oauth2/token';    # cURL request does not require "?" within the URL
+        $this->auth_url         = $this->get_login_uri().'/services/oauth2/authorize'; 
+        $this->tokens_url       = $this->get_login_uri().'/services/oauth2/token';  # cURL request does not require "?" within the URL
 
         # Install provider (DO NOT REMOVE)
         parent::install();
@@ -155,13 +155,13 @@ class OAuth_Salesforce extends OAuthProvider{
      */
     public function site_admin(){
         # Enable stored Site Admin session
-        if(in_array("site_admin", $this->features, TRUE)){
-            $this->enable_sso();
+        if(in_array("site-admin", $this->features, TRUE)){
+            $this->store_site_admin();
         }
     }
 
 /************************************
- * Provider specific private methods
+ * Provider specific methods
  ************************************/
 
     /**
@@ -169,10 +169,41 @@ class OAuth_Salesforce extends OAuthProvider{
      *
      * @return     string | boolean
      */
-    private function getLoginURI(){
+    private function get_login_uri(){
         if($this->environment == 'production') return 'https://login.salesforce.com';
         if($this->environment == 'sandbox') return 'https://test.salesforce.com';
         return FALSE;
+    }
+
+    /**
+     * Store the site admin session
+     */
+    private function store_site_admin(){
+        update_option('options_salesforce_authorization_code', $_SESSION[$this->session_string]['authorization_code']);
+        update_option('options_salesforce_access_token', $_SESSION[$this->session_string]['access_token']);
+        update_option('options_salesforce_refresh_token', $_SESSION[$this->session_string]['refresh_token']);
+        # Redirect back to settings page
+        header("Location: /wp-admin/admin.php?page=site-settings");
+        exit;
+    }
+
+    /**
+     * Store the site admin session
+     */
+    public static function clear_site_admin(){
+        update_option('options_salesforce_authorization_code', '');
+        update_option('options_salesforce_access_token', '');
+        update_option('options_salesforce_refresh_token', '');
+    }
+
+    /**
+     * Store the site admin session
+     */
+    public static function has_site_admin_session(){
+        if(get_option('options_salesforce_authorization_code')=='') return false;
+        if(get_option('options_salesforce_access_token')=='') return false;
+        if(get_option('options_salesforce_refresh_token')=='') return false;
+        return true;
     }
 
 }
