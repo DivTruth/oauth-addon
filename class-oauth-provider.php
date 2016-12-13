@@ -150,7 +150,7 @@ abstract class OAuthProvider {
 	 */
 	public function request_authorization_code() {
 		$url = $this->get_authorization_url();
-		$_SESSION[$this->session_string]['last_url'] = get_bloginfo('url' ).$_SERVER['REQUEST_URI'];
+		$_SESSION[$this->session_string]['last_url'] = (ISSET($_SERVER['HTTP_REFERER'])) ? $_SERVER['HTTP_REFERER'] : get_bloginfo('url' ).$_SERVER['REQUEST_URI'];
 		header("Location: $url");
 		exit;
 	}
