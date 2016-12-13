@@ -207,6 +207,22 @@ class OAuthAddon {
 	}
 
 	/**
+	 * Determines if it has sso enabled.
+	 *
+	 * @param      string   $provider
+	 * @return     boolean
+	 */
+	function has_sso_enabled($provider){
+		$features = get_option('options_'.$provider.'_features');
+		if($features!=NULL){
+			foreach ($features as $feature) {
+				if($feature = 'login') return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Generate and return the login buttons, depending on available providers
 	 *
 	 * @return     string
@@ -230,7 +246,7 @@ class OAuthAddon {
 		# Generate the login buttons for available providers:
 		$html = "";
 		foreach ($this->providers as $slug => $name) {
-			if(in_array($slug, $this->active_providers, TRUE))
+			if(in_array($slug, $this->active_providers, TRUE) && $this->has_sso_enabled($slug) )
 				$html .= $this->login_button($slug, $name, $atts);
 		}
 		return $html;
