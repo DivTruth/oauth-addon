@@ -17,9 +17,9 @@ abstract class OAuthProvider {
 	public $session_string;
 
 	# Provider authentication
-	protected $client_id;
-	protected $client_secret;
-	protected $redirect_uri;
+	public $client_id;
+	public $client_secret;
+	public $redirect_uri;
 
 	# OAuth URLs
 	protected $auth_url;
