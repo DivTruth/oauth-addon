@@ -62,6 +62,8 @@ class OAuthAddon {
 		require_once(__DIR__.'/class-oauth-provider.php');
 		# Install OAuth settings
 		require_once(__DIR__.'/acf-oauth-settings.php');
+		# Install OAuth application interface
+		require_once(__DIR__.'/object-oauth-app.php');  // TODO: Autoload class
 		# Install active providers
 		foreach($this->providers as $provider){
 			$this->install_provider( strtolower($provider) );
