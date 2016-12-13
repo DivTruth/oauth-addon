@@ -253,6 +253,39 @@ abstract class OAuthProvider {
 	}
 
 	/**
+	 * Refresh the oauth tokens
+	 */
+	public function request_refresh_tokens($refresh_token) {
+		# Setup refresh token request parameters:
+		$params = array(
+			'grant_type' 	=> 'refresh_token',
+			'refresh_token' => $refresh_token,
+			'client_id' 	=> $this->client_id,
+			'client_secret' => DIV\services\helper::decrypt($this->client_secret),
+		);
+		apply_filters( 'oauth__refresh_token_parameters', $params );
+
+		# Attempt curl token request:
+		$url = $this->get_token_url();
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, $url);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($curl, CURLOPT_POST, 1);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
+		$result = curl_exec($curl);
+		# Check for curl error
+		if(curl_errno($curl))
+    		$this->end_login('Curl error: '.curl_error($curl));
+		curl_close($curl);
+
+		# Parse & handle the result:
+		$response = json_decode($result, true);
+		return $response;
+	}
+
+	/**
 	 * Gets the identity
 	 */
 	private function request_identity() {
