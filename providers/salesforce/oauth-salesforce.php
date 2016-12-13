@@ -185,7 +185,6 @@ class OAuth_Salesforce extends OAuthProvider{
      * Store the site admin session
      */
     private function store_site_admin(){
-        update_option('options_salesforce_authorization_code', $_SESSION[$this->session_string]['authorization_code']);
         update_option('options_salesforce_access_token', $_SESSION[$this->session_string]['access_token']);
         update_option('options_salesforce_refresh_token', $_SESSION[$this->session_string]['refresh_token']);
         update_option('options_salesforce_instance_url', $_SESSION[$this->session_string]['instance_url']);
@@ -200,7 +199,6 @@ class OAuth_Salesforce extends OAuthProvider{
      * Store the site admin session
      */
     public static function clear_site_admin(){
-        update_option('options_salesforce_authorization_code', '');
         update_option('options_salesforce_access_token', '');
         update_option('options_salesforce_refresh_token', '');
         update_option('options_salesforce_instance_url', '');
@@ -210,7 +208,6 @@ class OAuth_Salesforce extends OAuthProvider{
      * Store the site admin session
      */
     public static function has_site_admin_session(){
-        if(get_option('options_salesforce_authorization_code')=='') return false;
         if(get_option('options_salesforce_access_token')=='') return false;
         if(get_option('options_salesforce_refresh_token')=='') return false;
         if(get_option('options_salesforce_instance_url')=='') return false;
@@ -218,10 +215,26 @@ class OAuth_Salesforce extends OAuthProvider{
     }
 
     /**
-     * Store the site admin session
+     * Refresh the site admin session once access token has expired
      */
-    public static function get_site_admin_session(){
-        
+    public function refresh_session(){
+        $refresh_token = get_option('options_salesforce_refresh_token');
+        if($refresh_token){
+          $token_response = $this->request_refresh_tokens($refresh_token);
+          echo "<pre>"; print_r($token_response); echo "</pre>";
+          $this->consume_token_response($token_response);
+        }
+    }
+
+    /**
+     * Refresh the site admin session
+     */
+    private function consume_refresh_token(){
+        update_option('options_salesforce_access_token', $_SESSION[$this->session_string]['access_token']);
+        update_option('options_salesforce_refresh_token', $_SESSION[$this->session_string]['refresh_token']);
+        update_option('options_salesforce_instance_url', $_SESSION[$this->session_string]['instance_url']);
+        # Clear login state
+        $this->clear_login_state();
     }
 
 }

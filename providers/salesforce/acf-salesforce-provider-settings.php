@@ -201,33 +201,6 @@ acf_add_local_field_group(array (
 			'esc_html' => 0,
 		),
 		array (
-			'key' => 'field_57ed79c38e9a1',
-			'label' => 'Authorization Code',
-			'name' => 'salesforce_authorization_code',
-			'type' => 'text',
-			'instructions' => 'The authorization token is used to request an access and refresh token',
-			'required' => 0,
-			'conditional_logic' => array (
-				array (
-					array (
-						'field' => 'field_57ed75f491739',
-						'operator' => '==',
-						'value' => 'site-admin',
-					),
-				),
-			),
-			'wrapper' => array (
-				'width' => '',
-				'class' => 'disabled oauth-panel',
-				'id' => '',
-			),
-			'default_value' => '',
-			'placeholder' => '',
-			'prepend' => '',
-			'append' => '',
-			'maxlength' => '',
-		),
-		array (
 			'key' => 'field_57ed79788e9a0',
 			'label' => 'Access Token',
 			'name' => 'salesforce_access_token',

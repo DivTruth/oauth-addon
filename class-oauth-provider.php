@@ -261,9 +261,9 @@ abstract class OAuthProvider {
 		# Setup refresh token request parameters:
 		$params = array(
 			'grant_type' 	=> 'refresh_token',
-			'refresh_token' => $refresh_token,
 			'client_id' 	=> $this->client_id,
 			'client_secret' => DIV\services\helper::decrypt($this->client_secret),
+			'refresh_token' => $refresh_token,
 		);
 		apply_filters( 'oauth__refresh_token_parameters', $params );
 
@@ -276,6 +276,12 @@ abstract class OAuthProvider {
 		curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
+		
+		$headers = array();
+		$headers[] = 'Accept: application/x-www-form-urlencoded';
+		$headers[] = 'Content-Type: application/x-www-form-urlencoded';
+		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+
 		$result = curl_exec($curl);
 		# Check for curl error
 		if(curl_errno($curl))
