@@ -14,11 +14,12 @@ abstract class OAuthProvider {
 
 	# Set class details
 	protected $provider;
+	public $session_string;
 
 	# Provider authentication
-	protected $client_id;
-	protected $client_secret;
-	protected $redirect_uri;
+	public $client_id;
+	public $client_secret;
+	public $redirect_uri;
 
 	# OAuth URLs
 	protected $auth_url;
@@ -30,6 +31,14 @@ abstract class OAuthProvider {
 	 * @var array
 	 */
 	public $session;
+
+	/**
+	 * Store features in state parameter
+	 * NOTE: Must be enabled by provider
+	 * @var string
+	 */
+	public $state;
+	protected $state_support = FALSE;
 
 	/**
 	 * Identity array
@@ -46,36 +55,47 @@ abstract class OAuthProvider {
 	 * Once the provider is configured it needs to be installed
 	 */
 	protected function install(){
+		# Check for state parameter support
+		if($this->state_support){
+			# Set state if called by specific feature
+			$this->state = (ISSET($_REQUEST['state'])) ? $_REQUEST['state'] : false;
+		} else {
+			# Disable for this instance
+			$this->state = FALSE;
+		}
 		# Setup the instance session container
+		$this->session_string = ($this->state) ? $this->provider.'-'.$this->state : $this->provider;
+		$this->setup_session();
+	}
+
+	/**
+	 * Install the application and session string
+	 *
+	 * @param      string  $app
+	 */
+	public function install_app($app){
+		$this->session_string = $app;
+		$this->redirect_uri = $this->redirect_uri.'/'.$this->session_string;
 		$this->setup_session();
 	}
 
 	/**
 	 * Setup instance session
 	 */
-	public function setup_session(){
+	private function setup_session(){
 		if (!isset($_SESSION)) session_start();
-		$this->session = array(
-			'authorization_code'	=> ( ISSET($_SESSION[$this->provider]['code']) ) 
-										? $_SESSION[$this->provider]['code'] : NULL,
-			'access_token' 			=> ( ISSET($_SESSION[$this->provider]['access_token']) ) 
-										? $_SESSION[$this->provider]['access_token'] : NULL,
-			'refresh_token' 		=> ( ISSET($_SESSION[$this->provider]['refresh_token']) ) 
-										? $_SESSION[$this->provider]['refresh_token'] : NULL,
-			'issued_at' 			=> ( ISSET($_SESSION[$this->provider]['issued_at']) )   // TODO: consider changing to expires_at or in
-										? $_SESSION[$this->provider]['issued_at'] : NULL,
-			'identity_url' 			=> ( ISSET($_SESSION[$this->provider]['identity_url']) ) 
-										? $_SESSION[$this->provider]['identity_url'] : NULL,
-			'last_url' 				=> ( ISSET($_SESSION[$this->provider]['last_url']) ) 
-										? $_SESSION[$this->provider]['last_url'] : NULL
-		);
+		if(ISSET($_SESSION[$this->session_string])){
+			foreach ($_SESSION[$this->session_string] as $key => $value) {
+				$this->session[$key] = $value;
+			}
+		}
 	}
 
 	/**
 	 * Clears the login state
 	 */
-	private function clear_login_state(){
-		unset($_SESSION[$this->provider]);
+	protected function clear_login_state(){
+		unset($_SESSION[$this->session_string]);
 	}
 
 	/**
@@ -84,8 +104,27 @@ abstract class OAuthProvider {
 	 * @param      string  $token
 	 */
 	public function isAuthenticated(){
-		if( ! ISSET($this->session['access_token']) ) return FALSE;
-		return TRUE;
+		if( ISSET($_SESSION[$this->session_string]['access_token']) ){
+			# Has an access token but could be expired
+			if( ISSET($_SESSION[$this->session_string]['expires']) ){
+				# Determine if token has expired
+            	$expires = $_SESSION[$this->session_string]['expires'];
+	            $current = time();
+	            if( $expires >= $current ){
+	                $this->token = $_SESSION[$this->session_string]['access_token'];
+	                return TRUE;
+	            } else {
+	            	# Since token is expired, reset and try again
+					$this->clear_login_state();
+	            	return FALSE;
+	            }
+			} else {
+				# No expiration set, so reset and try again
+				$this->clear_login_state();
+				return false;
+			}
+        }
+		return FALSE;
 	}
 
 	/**
@@ -99,6 +138,8 @@ abstract class OAuthProvider {
 			'client_id' 	=> $this->client_id,
 			'redirect_uri' 	=> $this->redirect_uri,
 		);
+		# Add state parameter if set to true
+		if($this->state) $params['state'] = $this->state;
 		# Allow provider to modify parameters
 		$params = apply_filters( 'oauth_authorization_parameters', $params );
 		# Return url with a filter hook for modifications
@@ -110,7 +151,7 @@ abstract class OAuthProvider {
 	 */
 	public function request_authorization_code() {
 		$url = $this->get_authorization_url();
-		$_SESSION[$this->provider]['last_url'] = $_SERVER['HTTP_REFERER'];
+		$_SESSION[$this->session_string]['last_url'] = (ISSET($_SERVER['HTTP_REFERER'])) ? $_SERVER['HTTP_REFERER'] : get_bloginfo('url' ).$_SERVER['REQUEST_URI'];
 		header("Location: $url");
 		exit;
 	}
@@ -131,7 +172,7 @@ abstract class OAuthProvider {
 	 */
 	protected function set_field($field, $value){
 		$this->session[$field] = $value;
-		$_SESSION[$this->provider][$field] = $this->session[$field];
+		$_SESSION[$this->session_string][$field] = $value;
 	}
 
 	/**
@@ -150,12 +191,14 @@ abstract class OAuthProvider {
 	public function request_tokens() {
 		# Setup token request parameters:
 		$params = array(
-			'grant_type' => 'authorization_code',
-			'code' => $this->session['authorization_code'],
-			'client_id' => $this->client_id,
+			'grant_type' 	=> 'authorization_code',
+			'code' 			=> $this->session['authorization_code'],
+			'client_id' 	=> $this->client_id,
 			'client_secret' => DIV\services\helper::decrypt($this->client_secret),
-			'redirect_uri' => $this->redirect_uri
+			'redirect_uri' 	=> $this->redirect_uri,
 		);
+		# Add state parameter if set to true
+		if($this->state) $params['state'] = $this->state;
 		apply_filters( 'oauth_token_parameters', $params );
 
 		# Attempt curl token request:
@@ -187,11 +230,12 @@ abstract class OAuthProvider {
 		# Setup token request parameters:
 		$params = array(
 			'access_token' 		=> 'access_token',
+			'state' 			=> 'state',
 			'error'				=> 'error',
 			'error_description' => 'error_description'
 		);
 		$params = apply_filters( 'oauth_token_response', $params );
-
+		
 		# Check for errors
 		if(ISSET($response[ $params['error'] ])){
 			$description = (ISSET($response[ $params['error_description'] ])) 
@@ -202,9 +246,46 @@ abstract class OAuthProvider {
 
 		# Basic consumption methods
 		$this->set_field('access_token', $response[ $params['access_token'] ]);
+		# Set a default 8 hour expiration
+		$expiration = apply_filters( 'oauth_token_expiration', time()+8*60*60 );
+		$this->set_field('expires', $expiration);
 
 		# Run any provider specific consumption methods
 		do_action('consume_token_response', $params, $response);
+	}
+
+	/**
+	 * Refresh the oauth tokens
+	 */
+	public function request_refresh_tokens($refresh_token) {
+		# Setup refresh token request parameters:
+		$params = array(
+			'grant_type' 	=> 'refresh_token',
+			'client_id' 	=> $this->client_id,
+			'client_secret' => DIV\services\helper::decrypt($this->client_secret),
+			'refresh_token' => $refresh_token,
+		);
+		apply_filters( 'oauth__refresh_token_parameters', $params );
+
+		# Attempt curl token request:
+		$url = $this->get_token_url();
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, $url);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($curl, CURLOPT_POST, 1);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
+
+		$result = curl_exec($curl);
+		# Check for curl error
+		if(curl_errno($curl))
+    		$this->end_login('Curl error: '.curl_error($curl));
+		curl_close($curl);
+
+		# Parse & handle the result:
+		$response = json_decode($result, true);
+		return $response;
 	}
 
 	/**
@@ -410,9 +491,9 @@ abstract class OAuthProvider {
 	 */
 	function end_login($msg, $error=TRUE) {
 		# Unset last url for redirect
-		if( ISSET($_SESSION[$this->provider]["last_url"]) ){
-			$last_url = $_SESSION[$this->provider]["last_url"];
-			unset($_SESSION[$this->provider]["last_url"]);
+		if( ISSET($_SESSION[$this->session_string]["last_url"]) ){
+			$last_url = $_SESSION[$this->session_string]["last_url"];
+			unset($_SESSION[$this->session_string]["last_url"]);
 		} else {
 			$last_url = $this->session['last_url'];
 		}
@@ -458,9 +539,29 @@ abstract class OAuthProvider {
 	}
 
 /************************************
- * Private OAuth feature methods
+ * OAuth feature methods
  ************************************/
 	
+	/**
+	 * Default activation method
+	 */
+	public function activate(){
+        # Attempt login by default
+        $this->login();
+        # Login feature disabled, redirect to home page
+        $this->end_login('No features or services available, please contact support');
+    }
+
+	/**
+	 * Enable SSO login feature
+	 */
+	public function login(){
+        # Enable Single Sign-On
+        if(in_array("login", $this->features, TRUE)){
+            $this->enable_sso();
+        }
+    }
+
 	/**
 	 * Request user's email to match/login to WP user
 	 */

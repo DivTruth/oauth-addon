@@ -11,13 +11,19 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  
 class OAuth_Salesforce extends OAuthProvider{
 
-	# Provider constants
-	const PROVIDER = 'salesforce';
+    # Provider constants
+    const PROVIDER = 'salesforce';
 
-	# Provider settings
-	protected $features;
-	protected $environment;
-	
+    # Provider settings
+    protected $features;
+    protected $environment;
+
+    /**
+     * Enable the state parameter
+     * @var boolean
+     */
+    public $state_support = TRUE;
+    
     /**
      * Provider Constructor
      */
@@ -31,37 +37,37 @@ class OAuth_Salesforce extends OAuthProvider{
     }
  
     function init(){
-    	# Provider settings
-        $this->provider 		= $this::PROVIDER;
+        # Provider settings
+        $this->provider         = $this::PROVIDER;
         $this->features         = (get_option('options_salesforce_features')) ? get_option('options_salesforce_features') : array();
-		$this->environment 		= get_option('options_salesforce_environment');
-		
-		# Provider authentication
-        $this->client_id 		= get_option('options_'.$this->provider.'_client_id');
-        $this->client_secret 	= get_option('options_'.$this->provider.'_client_secret');
-        $this->redirect_uri 	= get_bloginfo('url').'/oauth/'.$this->provider;
-		
-		# OAuth URLs
-        $this->auth_url 		= $this->getLoginURI().'/services/oauth2/authorize'; 
-        $this->tokens_url 		= $this->getLoginURI().'/services/oauth2/token';	# cURL request does not require "?" within the URL
+        $this->environment      = get_option('options_salesforce_environment');
+        
+        # Provider authentication
+        $this->client_id        = get_option('options_'.$this->provider.'_client_id');
+        $this->client_secret    = get_option('options_'.$this->provider.'_client_secret');
+        $this->redirect_uri     = get_bloginfo('url').'/oauth/'.$this->provider;
+        
+        # OAuth URLs
+        $this->auth_url         = $this->get_login_uri().'/services/oauth2/authorize'; 
+        $this->tokens_url       = $this->get_login_uri().'/services/oauth2/token';  # cURL request does not require "?" within the URL
 
         # Install provider (DO NOT REMOVE)
-		parent::install();
+        parent::install();
     }
- 	
- 	/**
- 	 * Hook into any filters specific to this provider (optional)
- 	 * 
- 	 * NOTE: This is only necessary if you are modifying the 
- 	 * 		default values of parameters used throughout the
- 	 * 		OAuth process
- 	 */
+    
+    /**
+     * Hook into any filters specific to this provider (optional)
+     * 
+     * NOTE: This is only necessary if you are modifying the 
+     *      default values of parameters used throughout the
+     *      OAuth process
+     */
     function filters(){
         add_filter( 'oauth_authorization_parameters', array( $this, 'authorization_parameters'), 1, 1 );
         // add_filter( 'oauth_token_parameters', array( $this, 'token_parameters'), 1, 1 );
         add_filter( 'oauth_token_response', array( $this, 'token_response'), 1, 1 );
         // add_filter( 'oauth_identity_parameters', array( $this, 'identity_parameters'), 1, 1 );
-    	add_filter( 'oauth_identity_response', array( $this, 'identity_response'), 1, 1 );
+        add_filter( 'oauth_identity_response', array( $this, 'identity_response'), 1, 1 );
     }
 
         /**
@@ -74,103 +80,165 @@ class OAuth_Salesforce extends OAuthProvider{
             return $params;
         }
 
-    	/**
-    	 * Modify/extend the token response parameters
+        /**
+         * Modify/extend the token response parameters
          * 
          * @param      array  $params
-    	 */
-    	public function token_response($params){
+         */
+        public function token_response($params){
             $params['refresh_token']     = 'refresh_token';
             $params['issued_at']         = 'issued_at';
-    		$params['signature'] 	     = 'signature';
-    		$params['scope'] 		     = 'scope';
-    		$params['id_token'] 	     = 'id_token';
-    		$params['instance_url']      = 'instance_url';
+            $params['signature']         = 'signature';
+            $params['scope']             = 'scope';
+            $params['id_token']          = 'id_token';
+            $params['instance_url']      = 'instance_url';
             $params['id']                = 'id';
-    		$params['error_description'] = 'error_description';
-    		return $params;
-    	}
+            $params['error_description'] = 'error_description';
+            return $params;
+        }
 
-    	/**
-    	 * Modify/extend the identity response parameters
+        /**
+         * Modify/extend the identity response parameters
          * 
          * @param      array  $params
-    	 */
-    	public function identity_response($params){
-    		$params['organization_id'] 	= 'organization_id';
-    		$params['first_name'] 		= 'first_name';
-    		$params['last_name'] 		= 'last_name';
-    		$params['display_name'] 	= 'display_name';
-    		$params['username'] 		= 'username';
-    		$params['timezone'] 		= 'timezone';
-    		return $params;
-    	}
+         */
+        public function identity_response($params){
+            $params['organization_id']  = 'organization_id';
+            $params['first_name']       = 'first_name';
+            $params['last_name']        = 'last_name';
+            $params['display_name']     = 'display_name';
+            $params['username']         = 'username';
+            $params['timezone']         = 'timezone';
+            return $params;
+        }
 
     /**
- 	 * Hook into any actions specific to this provider (optional)
- 	 * 
- 	 * NOTE: This is only necessary if you are modifying the 
- 	 * 		default values of parameters used throughout the
- 	 * 		OAuth process
- 	 */
+     * Hook into any actions specific to this provider (optional)
+     * 
+     * NOTE: This is only necessary if you are modifying the 
+     *      default values of parameters used throughout the
+     *      OAuth process
+     */
     function actions(){
-    	add_action( 'consume_token_response', array( $this, 'consume_token'), 1, 2 );
-    	// add_action( 'consume_identity_response', array( $this, 'consume_identity'), 1, 2 );
+        add_action( 'consume_token_response', array( $this, 'consume_token'), 1, 2 );
+        // add_action( 'consume_identity_response', array( $this, 'consume_identity'), 1, 2 );
     }
     
-    	/**
-    	 * Setup custom token consumption methods
-    	 *
-    	 * @param      array  $params
-    	 * @param      array  $response
-    	 */
-    	public function consume_token($params, $response){
-            $this->set_field('refresh_token', $response[ $params['refresh_token'] ]);
+        /**
+         * Setup custom token consumption methods
+         *
+         * @param      array  $params
+         * @param      array  $response
+         */
+        public function consume_token($params, $response){
+            /* During authentication expect a refresh token, but during
+                refresh don't expect an additional one */
+            if( ISSET($response[ $params['refresh_token'] ]) )
+                $this->set_field('refresh_token', $response[ $params['refresh_token'] ]);
+
             $this->set_field('issues_at', date("m/d/Y H:i:s", time( $response[ $params['issued_at'] ]) ));
 
-    		# Used for gateway to Force.com's Identity Service
-    		$this->identity_url = $response[ $params['id'] ];
-    		
-    		$this->set_field('instance_url', $response[ $params['instance_url'] ]);
-    		$this->set_field('scope', $response[ $params['scope'] ]);
-    		
-    	}
+            # Used for gateway to Force.com's Identity Service
+            $this->identity_url = $response[ $params['id'] ];
+            
+            $this->set_field('instance_url', $response[ $params['instance_url'] ]);
+            $this->set_field('scope', $response[ $params['scope'] ]);
+            
+        }
 
-    	/**
-    	 * Setup custom identity consumption methods
-    	 *
-    	 * @param      array  $params
-    	 * @param      array  $response
-    	 */
-    	public function consume_identity($params, $response){
+        /**
+         * Setup custom identity consumption methods
+         *
+         * @param      array  $params
+         * @param      array  $response
+         */
+        public function consume_identity($params, $response){
             $this->set_identity('email', $response[ $params['email'] ]);
-    	}
+        }
 
 /************************************
- * Provider specific private methods
+ * Provider feature methods
  ************************************/
-	
-	/**
-     * Activate provider specific steps based on features
-     * enabled for the provider
+
+    /**
+     * Enable stored site admin feature
      */
-    public function activate(){
-        # Enable Single Sign-On
-        if(in_array("login", $this->features, TRUE)){
-            $this->enable_sso();
+    public function site_admin(){
+        # Enable stored Site Admin session
+        if(in_array("site-admin", $this->features, TRUE)){
+            $this->store_site_admin();
+        }
+    }
+
+/************************************
+ * Provider specific methods
+ ************************************/
+
+    /**
+     * Gets the login uri
+     *
+     * @return     string | boolean
+     */
+    private function get_login_uri(){
+        if($this->environment == 'production') return 'https://login.salesforce.com';
+        if($this->environment == 'sandbox') return 'https://test.salesforce.com';
+        return FALSE;
+    }
+
+    /**
+     * Store the site admin session
+     */
+    private function store_site_admin(){
+        update_option('options_salesforce_access_token', $_SESSION[$this->session_string]['access_token']);
+        update_option('options_salesforce_refresh_token', $_SESSION[$this->session_string]['refresh_token']);
+        update_option('options_salesforce_instance_url', $_SESSION[$this->session_string]['instance_url']);
+        # Clear login state
+        $this->clear_login_state();
+        # Redirect back to settings page
+        header("Location: /wp-admin/admin.php?page=site-settings");
+        exit;
+    }
+
+    /**
+     * Store the site admin session
+     */
+    public static function clear_site_admin(){
+        update_option('options_salesforce_access_token', '');
+        update_option('options_salesforce_refresh_token', '');
+        update_option('options_salesforce_instance_url', '');
+    }
+
+    /**
+     * Store the site admin session
+     */
+    public static function has_site_admin_session(){
+        if(get_option('options_salesforce_access_token')=='') return false;
+        if(get_option('options_salesforce_refresh_token')=='') return false;
+        if(get_option('options_salesforce_instance_url')=='') return false;
+        return true;
+    }
+
+    /**
+     * Refresh the site admin session once access token has expired
+     */
+    public function refresh_session(){
+        $refresh_token = get_option('options_salesforce_refresh_token');
+        if($refresh_token){
+            $token_response = $this->request_refresh_tokens($refresh_token);
+            update_option('options_salesforce_access_token', $token_response['access_token']);
         }
     }
 
     /**
-	 * Gets the login uri
-	 *
-	 * @return     string | boolean
-	 */
-	private function getLoginURI(){
-		if($this->environment == 'production') return 'https://login.salesforce.com';
-		if($this->environment == 'sandbox') return 'https://test.salesforce.com';
-		return FALSE;
-	}
+     * Refresh the site admin session
+     */
+    private function consume_refresh_token(){
+        update_option('options_salesforce_access_token', $_SESSION[$this->session_string]['access_token']);
+        update_option('options_salesforce_refresh_token', $_SESSION[$this->session_string]['refresh_token']);
+        update_option('options_salesforce_instance_url', $_SESSION[$this->session_string]['instance_url']);
+        # Clear login state
+        $this->clear_login_state();
+    }
 
 }
 

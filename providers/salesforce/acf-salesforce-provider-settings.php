@@ -9,6 +9,11 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+# Check for site admin logout request
+if(ISSET($_REQUEST['site_admin']) && $_REQUEST['site_admin'] == 'logoff'){
+	OAuth_Salesforce::clear_site_admin();
+}
+
 # Check if provider is enabled
 $providers = get_option( 'options_oauth_providers' );
 if(is_array($providers)){
@@ -16,11 +21,25 @@ if(is_array($providers)){
 } else{
 	$enabled = FALSE;
 }
-# Setup ACF fields
+# Setup login button data
 if( function_exists('acf_add_local_field_group') && $enabled ):
+$atts = array(
+	'site_url' 		=> get_bloginfo('url'),
+	'redirect_to' 	=> $_SERVER['REQUEST_URI'],
+	'state'			=> 'site_admin'
+);
+# Login button
+$site_admin_login = '<div style="text-align:center; margin:30px 0 10px;">'.OAuthAddon::login_button("salesforce", 'Sign In', $atts).'</div>';
+# Logoff button
+$site_admin_logoff = '<div style="text-align:center; margin:30px 0 10px;"><a id="logout-salesforce" class="oauth-login-button" href="'.$_SERVER['REQUEST_URI'].'&site_admin=logoff" onclick="">Sign Out</a></div>';
+# Determine which button should be displayed
+if(!OAuth_Salesforce::has_site_admin_session()){
+	$site_admin_button = $site_admin_login;
+} else {
+	$site_admin_button = $site_admin_logoff;
+}
 
-// $oauth_provider = new OAuth_Salesforce();
-
+# Setup ACF fields
 acf_add_local_field_group(array (
 	'key' => 'group_57ed757529b25',
 	'title' => 'Saleforce Provider Settings',
@@ -177,36 +196,9 @@ acf_add_local_field_group(array (
 				'class' => 'oauth-panel',
 				'id' => '',
 			),
-			'message' => '<div style="text-align:center; margin:30px 0 10px;">\'.$sf_connector->getOAuthLoginButton().\'</div>',
+			'message' => $site_admin_button,
 			'new_lines' => 'wpautop',
 			'esc_html' => 0,
-		),
-		array (
-			'key' => 'field_57ed79c38e9a1',
-			'label' => 'Authorization Code',
-			'name' => 'salesforce_authorization_code',
-			'type' => 'text',
-			'instructions' => 'The authorization token is used to request an access and refresh token',
-			'required' => 0,
-			'conditional_logic' => array (
-				array (
-					array (
-						'field' => 'field_57ed75f491739',
-						'operator' => '==',
-						'value' => 'site-admin',
-					),
-				),
-			),
-			'wrapper' => array (
-				'width' => '',
-				'class' => 'disabled oauth-panel',
-				'id' => '',
-			),
-			'default_value' => '',
-			'placeholder' => '',
-			'prepend' => '',
-			'append' => '',
-			'maxlength' => '',
 		),
 		array (
 			'key' => 'field_57ed79788e9a0',
@@ -241,6 +233,33 @@ acf_add_local_field_group(array (
 			'name' => 'salesforce_refresh_token',
 			'type' => 'text',
 			'instructions' => 'This token is used to refresh the session if it expires by requesting a new access and refresh token',
+			'required' => 0,
+			'conditional_logic' => array (
+				array (
+					array (
+						'field' => 'field_57ed75f491739',
+						'operator' => '==',
+						'value' => 'site-admin',
+					),
+				),
+			),
+			'wrapper' => array (
+				'width' => '',
+				'class' => 'disabled oauth-panel',
+				'id' => '',
+			),
+			'default_value' => '',
+			'placeholder' => '',
+			'prepend' => '',
+			'append' => '',
+			'maxlength' => '',
+		),
+		array (
+			'key' => 'field_57ed79eb8e9b3',
+			'label' => 'Instance URL',
+			'name' => 'salesforce_instance_url',
+			'type' => 'text',
+			'instructions' => 'This url is used to for making API request',
 			'required' => 0,
 			'conditional_logic' => array (
 				array (

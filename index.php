@@ -8,7 +8,7 @@
  * @package 	OAuth
  * @subpackage 	Addon
  * @author 	   	Nick Worth
- * @version     1.0
+ * @version     1.1
  * @link        https://github.com/DivTruth/oauth-addon
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class OAuthAddon {
 
 	# OAuth addon version 
-	public $version = '1.0';
+	public $version = '1.1';
 
 	public $providers = array(
 		'salesforce'	=> 'Salesforce',
@@ -62,6 +62,8 @@ class OAuthAddon {
 		require_once(__DIR__.'/class-oauth-provider.php');
 		# Install OAuth settings
 		require_once(__DIR__.'/acf-oauth-settings.php');
+		# Install OAuth application interface
+		require_once(__DIR__.'/object-oauth-app.php');  // TODO: Autoload class
 		# Install active providers
 		foreach($this->providers as $provider){
 			$this->install_provider( strtolower($provider) );
@@ -79,6 +81,7 @@ class OAuthAddon {
 		# Customize the login page
 		add_filter('login_message', array( $this, 'customize_login_screen') );
 		# Hook scripts and styles for login page:
+		add_action('wp_enqueue_scripts', array( $this, 'init_scripts_styles') );
 		add_action('login_enqueue_scripts', array( $this, 'init_scripts_styles') );
 		add_action('admin_enqueue_scripts', array( $this, 'init_scripts_styles') );
 
@@ -94,6 +97,7 @@ class OAuthAddon {
 		// add_filter( 'wp_loaded', array( $this, 'flushRewriteRules'));
 		
 		# Add error catching
+		add_action('oauth_callback', array($this, 'notify') );
 		add_action('wp_footer', array( $this, 'notify' ) );
 		add_filter('admin_footer', array($this, 'notify') );
 		add_filter('login_footer', array($this, 'notify') );
@@ -203,6 +207,22 @@ class OAuthAddon {
 	}
 
 	/**
+	 * Determines if it has sso enabled.
+	 *
+	 * @param      string   $provider
+	 * @return     boolean
+	 */
+	function has_sso_enabled($provider){
+		$features = get_option('options_'.$provider.'_features');
+		if($features!=NULL){
+			foreach ($features as $feature) {
+				if($feature == 'login') return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Generate and return the login buttons, depending on available providers
 	 *
 	 * @return     string
@@ -213,20 +233,20 @@ class OAuthAddon {
 		# Check for SSL
 		if( force_ssl_admin() ) { $site_url = set_url_scheme( $site_url, 'https' ); }
 		# Setup redirection if passed in URL
-		$redirect_to = isset($_GET['redirect_to']) ? urlencode($_GET['redirect_to']) : '';
-		if ($redirect_to) {$redirect_to = "&redirect_to=" . $redirect_to;}
+		$redirect_to = isset($_GET['redirect_to']) ? urlencode($_GET['redirect_to']) : '';	
 		
 		// TODO: Add icons
 
 		$atts = array(
-			'site_url' => $site_url,
-			'redirect_to' => $redirect_to,
+			'site_url' 		=> $site_url,
+			'redirect_to' 	=> $redirect_to,
+			'state' 		=> 'login'
 		);
 
 		# Generate the login buttons for available providers:
 		$html = "";
 		foreach ($this->providers as $slug => $name) {
-			if(in_array($slug, $this->active_providers, TRUE))
+			if(in_array($slug, $this->active_providers, TRUE) && $this->has_sso_enabled($slug) )
 				$html .= $this->login_button($slug, $name, $atts);
 		}
 		return $html;
@@ -241,9 +261,14 @@ class OAuthAddon {
 	 *
 	 * @return     string
 	 */
-	function login_button($provider, $display_name, $atts) {
+	static function login_button($provider, $display_name, $atts) {
+		# Setup redirection if passed in URL
+		$redirect_to = (ISSET($atts['redirect_to'])) ? '&redirect_to=' . urlencode($atts['redirect_to']) : '';
+		# Setup features in the state parameter
+		$state = (ISSET($atts['state'])) ? '&state=' . urlencode($atts['state']) : '';
+
 		$html = "";
-			$html .= "<a id='login-" . $provider . "' class='oauth-login-button' href='" . $atts['site_url'] . "?connect=" . $provider . $atts['redirect_to'] . "'>";
+			$html .= "<a id='login-" . $provider . "' class='oauth-login-button' href='" . $atts['site_url'] . "?connect=".$provider.$redirect_to.$state."'>";
 			$html .= $display_name;
 			$html .= "</a>";
 		return $html;
