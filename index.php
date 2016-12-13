@@ -8,7 +8,7 @@
  * @package 	OAuth
  * @subpackage 	Addon
  * @author 	   	Nick Worth
- * @version     1.0
+ * @version     1.1
  * @link        https://github.com/DivTruth/oauth-addon
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class OAuthAddon {
 
 	# OAuth addon version 
-	public $version = '1.0';
+	public $version = '1.1';
 
 	public $providers = array(
 		'salesforce'	=> 'Salesforce',
