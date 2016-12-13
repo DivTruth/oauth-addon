@@ -188,6 +188,7 @@ class OAuth_Salesforce extends OAuthProvider{
         update_option('options_salesforce_authorization_code', $_SESSION[$this->session_string]['authorization_code']);
         update_option('options_salesforce_access_token', $_SESSION[$this->session_string]['access_token']);
         update_option('options_salesforce_refresh_token', $_SESSION[$this->session_string]['refresh_token']);
+        update_option('options_salesforce_instance_url', $_SESSION[$this->session_string]['instance_url']);
         # Clear login state
         $this->clear_login_state();
         # Redirect back to settings page
@@ -202,6 +203,7 @@ class OAuth_Salesforce extends OAuthProvider{
         update_option('options_salesforce_authorization_code', '');
         update_option('options_salesforce_access_token', '');
         update_option('options_salesforce_refresh_token', '');
+        update_option('options_salesforce_instance_url', '');
     }
 
     /**
@@ -211,7 +213,15 @@ class OAuth_Salesforce extends OAuthProvider{
         if(get_option('options_salesforce_authorization_code')=='') return false;
         if(get_option('options_salesforce_access_token')=='') return false;
         if(get_option('options_salesforce_refresh_token')=='') return false;
+        if(get_option('options_salesforce_instance_url')=='') return false;
         return true;
+    }
+
+    /**
+     * Store the site admin session
+     */
+    public static function get_site_admin_session(){
+        
     }
 
 }

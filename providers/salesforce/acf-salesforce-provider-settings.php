@@ -281,6 +281,33 @@ acf_add_local_field_group(array (
 			'append' => '',
 			'maxlength' => '',
 		),
+		array (
+			'key' => 'field_57ed79eb8e9b3',
+			'label' => 'Instance URL',
+			'name' => 'salesforce_instance_url',
+			'type' => 'text',
+			'instructions' => 'This url is used to for making API request',
+			'required' => 0,
+			'conditional_logic' => array (
+				array (
+					array (
+						'field' => 'field_57ed75f491739',
+						'operator' => '==',
+						'value' => 'site-admin',
+					),
+				),
+			),
+			'wrapper' => array (
+				'width' => '',
+				'class' => 'disabled oauth-panel',
+				'id' => '',
+			),
+			'default_value' => '',
+			'placeholder' => '',
+			'prepend' => '',
+			'append' => '',
+			'maxlength' => '',
+		),
 	),
 	'location' => array (
 		array (
