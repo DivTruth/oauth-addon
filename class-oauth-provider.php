@@ -88,8 +88,28 @@ abstract class OAuthProvider {
 	 * @param      string  $token
 	 */
 	public function isAuthenticated(){
-		if( ! ISSET($this->session['access_token']) ) return FALSE;
-		return TRUE;
+		if( ISSET($_SESSION[$this->session_string]['access_token']) ){
+			# Has an access token but could be expired
+			if( ISSET($_SESSION[$this->session_string]['expires']) ){
+				# Determine if token has expired
+            	$expires = $_SESSION[$this->session_string]['expires'];
+	            $current = time();
+	            if( $expires >= $current ){
+	                $this->token = $_SESSION[$this->session_string]['access_token'];
+	                $this->endpoint = $_SESSION[$this->session_string]['instance_url'].'/services/apexrest/FishFinder';
+	                return TRUE;
+	            } else {
+	            	# Since token is expired, reset and try again
+					$this->clear_login_state();
+	            	return FALSE;
+	            }
+			} else {
+				# No expiration set, so reset and try again
+				$this->clear_login_state();
+				return false;
+			}
+        }
+		return FALSE;
 	}
 
 	/**
@@ -114,7 +134,7 @@ abstract class OAuthProvider {
 	 */
 	public function request_authorization_code() {
 		$url = $this->get_authorization_url();
-		$_SESSION[$this->session_string]['last_url'] = $_SERVER['HTTP_REFERER'];
+		$_SESSION[$this->session_string]['last_url'] = get_bloginfo('url' ).$_SERVER['REQUEST_URI'];
 		header("Location: $url");
 		exit;
 	}
@@ -206,6 +226,9 @@ abstract class OAuthProvider {
 
 		# Basic consumption methods
 		$this->set_field('access_token', $response[ $params['access_token'] ]);
+		# Set a default 8 hour expiration
+		$expiration = apply_filters( 'oauth_token_expiration', time()+8*60*60 );
+		$this->set_field('expires', $expiration);
 
 		# Run any provider specific consumption methods
 		do_action('consume_token_response', $params, $response);
